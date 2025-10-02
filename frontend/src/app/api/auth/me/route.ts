@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getSession(req);
+    const session = await getSession();
 
     if (!session?.user) {
       return NextResponse.json({ error: "No user session" }, { status: 401 });
