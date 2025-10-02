@@ -18,7 +18,6 @@ A comprehensive web application for comparing multiple AI models side-by-side in
 - **Clean, Modern UI**: Responsive design with Tailwind CSS
 - **Markdown Rendering**: Rich text display with syntax highlighting
 - **Status Indicators**: Visual feedback for model response states
-- **Export & Sharing**: Save and share comparison results
 - **Session History**: Browse and revisit past comparisons
 - **Error Handling**: Graceful failure management and recovery
 
