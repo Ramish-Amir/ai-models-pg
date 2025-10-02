@@ -15,6 +15,8 @@ import {
   DollarSign,
   Bot,
   TrendingUp,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -55,6 +57,7 @@ export function ModelResponseCard({
 }: ModelResponseCardProps) {
   const [copied, setCopied] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isFooterOpen, setIsFooterOpen] = useState(false);
 
   // Handle streaming animation
   useEffect(() => {
@@ -64,6 +67,23 @@ export function ModelResponseCard({
       setIsStreaming(false);
     }
   }, [response.status]);
+
+  // Auto-open footer when metrics data is available
+  useEffect(() => {
+    const hasMetrics =
+      response.inputTokens ||
+      response.outputTokens ||
+      response.cost ||
+      response.responseTimeMs;
+    if (hasMetrics) {
+      setIsFooterOpen(true);
+    }
+  }, [
+    response.inputTokens,
+    response.outputTokens,
+    response.cost,
+    response.responseTimeMs,
+  ]);
 
   /**
    * Copies the response text to clipboard.
@@ -148,7 +168,7 @@ export function ModelResponseCard({
       </div>
 
       {/* Response Content - Scrollable with padding for header and footer */}
-      <div className="flex-1 overflow-y-auto pt-12 pb-16">
+      <div className="flex-1 overflow-y-auto pt-12 pb-[240px]">
         <div className="p-4">
           {response.status === "error" ? (
             /* Enhanced Error State */
@@ -193,45 +213,166 @@ export function ModelResponseCard({
         </div>
       </div>
 
-      {/* Statistics Footer - Absolute at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 bg-gray-50 border-t border-gray-150">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-center gap-1 overflow-x-auto scrollbar-hide">
-            {/* Metrics - Enhanced Design */}
-            {response.inputTokens && (
-              <div className="flex items-center bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200">
-                <TrendingUp className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-semibold text-gray-700">
-                  {response.inputTokens.toLocaleString()}
-                </span>
-                <span className="text-xs text-gray-500">in</span>
-              </div>
+      {/* Enhanced Statistics Footer - Collapsible Design */}
+      <div
+        className={`absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-r from-slate-50 via-gray-50 to-slate-50 border-t border-gray-200/60 backdrop-blur-sm transition-all duration-300 ${
+          isFooterOpen ? "translate-y-0" : "translate-y-0"
+        }`}
+      >
+        {/* Toggle Button */}
+        <div className="flex items-center justify-center py-2">
+          <button
+            onClick={() => {
+              console.log("Toggle clicked, current state:", isFooterOpen);
+              setIsFooterOpen(!isFooterOpen);
+            }}
+            className="flex items-center space-x-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200 text-xs font-medium text-gray-600 hover:text-gray-800"
+          >
+            <div className="w-1.5 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+            <span>Metrics</span>
+            {isFooterOpen ? (
+              <ChevronUp className="w-3 h-3" />
+            ) : (
+              <ChevronDown className="w-3 h-3" />
             )}
-            {response.outputTokens && (
-              <div className="flex items-center space-x-1 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-semibold text-gray-700">
-                  {response.outputTokens.toLocaleString()}
-                </span>
-                <span className="text-xs text-gray-500">out</span>
-              </div>
-            )}
-            {response.cost && (
-              <div className="flex items-center space-x-1 bg-green-50 px-3 py-2 rounded-lg shadow-sm border border-green-200">
-                <DollarSign className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-bold text-green-700">
-                  {formatCurrency(response.cost)}
-                </span>
-              </div>
-            )}
-            {response.responseTimeMs && (
-              <div className="flex items-center space-x-1 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200">
-                <Clock className="w-4 h-4 text-purple-600" />
-                <span className="text-sm font-semibold text-gray-700">
-                  {formatDuration(response.responseTimeMs)}
+          </button>
+        </div>
+
+        {/* Collapsible Content */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isFooterOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="px-4 pb-3">
+            {/* Performance Overview Bar */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Performance
                 </span>
               </div>
-            )}
+              {response.responseTimeMs && (
+                <div className="flex items-center space-x-1 text-xs text-gray-500">
+                  <Clock className="w-3 h-3" />
+                  <span className="font-mono">
+                    {formatDuration(response.responseTimeMs)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Metrics Grid - Creative Layout */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Token Usage Section */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                    <span className="text-xs font-medium text-gray-600">
+                      Tokens
+                    </span>
+                  </div>
+                  <TrendingUp className="w-3 h-3 text-gray-400" />
+                </div>
+                <div className="space-y-1">
+                  {response.inputTokens && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Input</span>
+                      <span className="text-sm font-semibold text-blue-600">
+                        {response.inputTokens.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                  {response.outputTokens && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Output</span>
+                      <span className="text-sm font-semibold text-green-600">
+                        {response.outputTokens.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Cost & Efficiency Section */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                    <span className="text-xs font-medium text-gray-600">
+                      Cost
+                    </span>
+                  </div>
+                  <DollarSign className="w-3 h-3 text-gray-400" />
+                </div>
+                <div className="space-y-1">
+                  {response.cost && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Total</span>
+                      <span className="text-sm font-bold text-green-600">
+                        {formatCurrency(response.cost)}
+                      </span>
+                    </div>
+                  )}
+                  {response.inputTokens &&
+                    response.outputTokens &&
+                    response.cost && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">Per 1K</span>
+                        <span className="text-xs font-medium text-gray-600">
+                          {formatCurrency(
+                            (response.cost /
+                              (response.inputTokens + response.outputTokens)) *
+                              1000
+                          )}
+                        </span>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+
+            {/* Efficiency Indicator */}
+            {response.inputTokens &&
+              response.outputTokens &&
+              response.responseTimeMs && (
+                <div className="mt-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-2 border border-blue-200/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                      <span className="text-xs font-medium text-gray-700">
+                        Efficiency
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-xs">
+                      <div className="flex items-center space-x-1">
+                        <span className="text-gray-500">Speed:</span>
+                        <span className="font-mono font-medium text-blue-600">
+                          {Math.round(
+                            (response.inputTokens + response.outputTokens) /
+                              (response.responseTimeMs / 1000)
+                          )}{" "}
+                          tok/s
+                        </span>
+                      </div>
+                      <div className="w-px h-3 bg-gray-300"></div>
+                      <div className="flex items-center space-x-1">
+                        <span className="text-gray-500">Ratio:</span>
+                        <span className="font-mono font-medium text-purple-600">
+                          {response.outputTokens
+                            ? (
+                                response.outputTokens / response.inputTokens
+                              ).toFixed(1)
+                            : "0.0"}
+                          x
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       </div>
