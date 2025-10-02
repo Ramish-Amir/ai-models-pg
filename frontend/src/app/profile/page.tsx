@@ -1,7 +1,9 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useApi } from "@/hooks/useApi";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { UserProfile } from "@/types";
 import {
   Card,
   CardContent,
@@ -12,8 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, User, Mail, Calendar, Globe } from "lucide-react";
+import { LogOut, User, Mail, Calendar, Globe, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { useEffect, useState } from "react";
 
 /**
  * Profile page component for authenticated users.
@@ -26,10 +29,76 @@ import { format } from "date-fns";
  */
 export default function ProfilePage() {
   const { user, logout } = useAuth();
+  const { getUserProfile, loading, error } = useApi();
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Fetch profile data from backend
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+
+      try {
+        setProfileLoading(true);
+        setProfileError(null);
+        const data = await getUserProfile();
+        setProfileData(data);
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+        setProfileError("Failed to load profile data");
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user, getUserProfile]);
 
   if (!user) {
     return null;
   }
+
+  // Show loading state
+  if (profileLoading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                <p className="text-gray-600">Loading profile...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  // Show error state
+  if (profileError) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <p className="text-red-600 mb-4">{profileError}</p>
+                <Button onClick={() => window.location.reload()}>
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  // Use backend data if available, fallback to Auth0 user data
+  const displayUser = profileData || user;
 
   return (
     <ProtectedRoute>
@@ -59,18 +128,20 @@ export default function ProfilePage() {
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-20 w-20">
                     <AvatarImage
-                      src={user.picture || undefined}
-                      alt={user.name || "User"}
+                      src={displayUser.picture || undefined}
+                      alt={displayUser.name || "User"}
                     />
                     <AvatarFallback className="text-lg">
-                      {user.name?.charAt(0) || user.email?.charAt(0) || "U"}
+                      {displayUser.name?.charAt(0) ||
+                        displayUser.email?.charAt(0) ||
+                        "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold text-gray-900">
-                      {user.name || "User"}
+                      {displayUser.name || "User"}
                     </h3>
-                    <p className="text-gray-600">{user.email}</p>
+                    <p className="text-gray-600">{displayUser.email}</p>
                     <Badge variant="secondary" className="mt-2">
                       Authenticated
                     </Badge>
@@ -82,7 +153,9 @@ export default function ProfilePage() {
                     <Mail className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Email</p>
-                      <p className="text-sm text-gray-600">{user.email}</p>
+                      <p className="text-sm text-gray-600">
+                        {displayUser.email}
+                      </p>
                     </div>
                   </div>
 
@@ -93,7 +166,7 @@ export default function ProfilePage() {
                         Locale
                       </p>
                       <p className="text-sm text-gray-600">
-                        {String(user.locale || "en")}
+                        {String(displayUser.locale || "en")}
                       </p>
                     </div>
                   </div>
@@ -105,8 +178,15 @@ export default function ProfilePage() {
                         Last Updated
                       </p>
                       <p className="text-sm text-gray-600">
-                        {user.updated_at
-                          ? format(new Date(user.updated_at), "PPP")
+                        {(displayUser as any).updatedAt ||
+                        (displayUser as any).updated_at
+                          ? format(
+                              new Date(
+                                (displayUser as any).updatedAt ||
+                                  (displayUser as any).updated_at
+                              ),
+                              "PPP"
+                            )
                           : "N/A"}
                       </p>
                     </div>
@@ -119,7 +199,9 @@ export default function ProfilePage() {
                         User ID
                       </p>
                       <p className="text-xs text-gray-600 font-mono">
-                        {user.sub?.split("|")[1] || "N/A"}
+                        {displayUser.id ||
+                          (displayUser as any).sub?.split("|")[1] ||
+                          "N/A"}
                       </p>
                     </div>
                   </div>

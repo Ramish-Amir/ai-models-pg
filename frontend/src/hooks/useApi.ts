@@ -7,6 +7,7 @@ import {
   ComparisonSession,
   CreateComparisonRequest,
   SessionHistoryItem,
+  UserProfile,
 } from "@/types";
 import { getUserFriendlyErrorMessage } from "@/utils/errorHandling";
 
@@ -189,6 +190,20 @@ export function useApi() {
     }
   }, [api]);
 
+  /**
+   * Gets user profile information from the backend.
+   * Returns user data including profile details and account information.
+   */
+  const getUserProfile = useCallback(async (): Promise<UserProfile> => {
+    try {
+      const response = await api.get("/profile");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to get user profile:", error);
+      throw error;
+    }
+  }, [api]);
+
   return {
     loading,
     error,
@@ -197,5 +212,6 @@ export function useApi() {
     getSessionHistory,
     getAvailableModels,
     getHealth,
+    getUserProfile,
   };
 }

@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ComparisonSession } from "./entities/comparison-session.entity";
 import { ModelResponse } from "./entities/model-response.entity";
+import { User } from "./entities/user.entity";
 
 /**
  * Database service providing CRUD operations for comparison sessions and model responses.
@@ -19,7 +20,9 @@ export class DatabaseService {
     @InjectRepository(ComparisonSession)
     private readonly sessionRepository: Repository<ComparisonSession>,
     @InjectRepository(ModelResponse)
-    private readonly responseRepository: Repository<ModelResponse>
+    private readonly responseRepository: Repository<ModelResponse>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>
   ) {}
 
   /**
@@ -195,5 +198,11 @@ export class DatabaseService {
     console.log(
       `Successfully updated session ${sessionId} metrics in database`
     );
+  }
+
+  async getUserProfileData(auth0Id: string): Promise<User> {
+    return await this.userRepository.findOne({
+      where: { auth0Id },
+    });
   }
 }

@@ -40,14 +40,6 @@ interface HeaderProps {
 export function Header({ onToggleHistory, isConnected }: HeaderProps) {
   const { user, logout, isLoading, isAuthenticated, login } = useAuth();
 
-  // Debug user data
-  console.log("User data:", user);
-  console.log("User keys:", user ? Object.keys(user) : "No user");
-  console.log("User name:", user?.name);
-  console.log("User email:", user?.email);
-  console.log("User picture:", user?.picture);
-  console.log("Is loading:", isLoading);
-  console.log("Is authenticated:", isAuthenticated);
   return (
     <header className="bg-white shadow-sm border-b px-6 border-gray-200">
       <div className="py-2 w-full">

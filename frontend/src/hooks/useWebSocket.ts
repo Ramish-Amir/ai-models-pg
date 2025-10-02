@@ -51,7 +51,6 @@ export function useWebSocket() {
       });
 
       newSocket.on("disconnect", (reason) => {
-        console.log("WebSocket disconnected:", reason);
         setIsConnected(false);
 
         // Attempt reconnection for certain disconnect reasons
@@ -69,9 +68,6 @@ export function useWebSocket() {
           reconnectAttempts.current++;
 
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log(
-              `Attempting reconnection ${reconnectAttempts.current}/${maxReconnectAttempts}`
-            );
             newSocket.connect();
           }, delay);
         } else {

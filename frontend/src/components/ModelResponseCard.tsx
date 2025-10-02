@@ -223,7 +223,6 @@ export function ModelResponseCard({
         <div className="flex items-center justify-center py-2">
           <button
             onClick={() => {
-              console.log("Toggle clicked, current state:", isFooterOpen);
               setIsFooterOpen(!isFooterOpen);
             }}
             className="flex items-center space-x-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200 text-xs font-medium text-gray-600 hover:text-gray-800"

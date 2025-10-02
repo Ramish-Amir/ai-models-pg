@@ -12,6 +12,7 @@ import { AuthModule } from "./auth/auth.module";
 import { ComparisonSession } from "./database/entities/comparison-session.entity";
 import { ModelResponse } from "./database/entities/model-response.entity";
 import { User } from "./database/entities/user.entity";
+import { UserModule } from "./user/user.module";
 
 /**
  * Root application module that orchestrates all feature modules.
@@ -50,6 +51,7 @@ import { User } from "./database/entities/user.entity";
     AuthModule,
     ComparisonModule,
     AiProviderModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

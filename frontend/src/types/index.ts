@@ -81,3 +81,15 @@ export interface SessionHistoryItem {
   responseCount: number;
   createdAt: string;
 }
+
+export interface UserProfile {
+  id: string;
+  auth0Id: string;
+  email: string;
+  name?: string;
+  picture?: string;
+  locale: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
