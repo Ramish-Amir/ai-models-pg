@@ -15,9 +15,36 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS for frontend communication
+  const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    "https://ai-models-pg.vercel.app",
+    "https://ai-models-pg.vercel.app/",
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ].filter(Boolean);
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: (origin, callback) => {
+      // Allow requests with no origin
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // For development, allow localhost with any port
+      if (
+        process.env.NODE_ENV === "development" &&
+        origin.includes("localhost")
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"), false);
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
   });
 
   // Global validation pipe for automatic request validation
